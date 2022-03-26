@@ -1,0 +1,63 @@
+body{
+  margin: 0;
+  font-family: sans-serif;
+}
+h4{
+  margin: 0px;
+  margin-bottom: 10px;
+}
+.header{
+  padding-top: 10px;
+  padding-left: 10px;
+  width: 100%;
+  height: 50px;
+  background: rgb(28, 31, 31);
+}
+.header button{
+  padding: 10px 20px;
+  background: rgb(82, 116, 129);
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  outline: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.editor{
+  width: 100%;
+  height: calc(100vh - 50px);
+  display: flex;
+}
+.editor .code{
+  width: calc(100% - 300px);
+  border-right: 1px solid rgb(41, 43, 44);
+  background: rgb(40, 41, 43)
+}
+.editor .console{
+  width: 300px;
+  padding: 10px;
+  background: rgb(32, 32, 32);
+  color: white;
+  font-size: 16px;
+  word-wrap: break-word;
+}
+.CodeMirror{
+  height: auto;
+  margin: 0px;
+  padding: 0px;
+}
+/*for screen width less than 750px*/
+@media screen and (max-width: 750px){
+  .editor{
+    flex-direction: column;
+  }
+  .editor .code{
+    width: 100%;
+    border-right: none;
+  }
+  .editor .console{
+    width: 100%;
+    height: calc(100vh - 50px);
+  }
+}
