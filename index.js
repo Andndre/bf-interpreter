@@ -1,24 +1,19 @@
-var editor = CodeMirror(document.getElementById("bf-editor"), {
+let editor = CodeMirror(document.getElementById("bf-editor"), {
 	lineNumbers: true,
 	lineWrapping: true,
 	tabSize: 2,
 	mode: "text/x-brainfuck",
 	theme: "darcula",
 	value:
-		"++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.",
+		"++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.",
 });
+
+const output = document.getElementById("output");
 
 document.getElementById("run-btn").addEventListener("click", () => {
-	const console = document.getElementById("output");
-	console.innerHTML = compile(editor.getValue());
+	output.innerHTML = compile(editor.getValue());
 });
 
-function compile(source) {
-	// remove all characters except (+), (-), (>), (<), ([), (.), (,), and (])
-	source = source.replace(/[^+\-<>\[\]\.,\(\)]/g, "");
-	let tokens = source.split("");
-	return compileTokens(tokens);
-}
 function pairIndex(source, startIndex) {
 	if (source[startIndex] == "[") {
 		let open = 1;
@@ -30,53 +25,100 @@ function pairIndex(source, startIndex) {
 				open--;
 			}
 		}
-	} else {
-		let close = 1;
-		while (close > 0) {
-			startIndex--;
-			if (source[startIndex] === "]") {
-				close++;
-			} else if (source[startIndex] === "[") {
-				close--;
-			}
-		}
 	}
+	// // unused
+	// else {
+	// 	let close = 1;
+	// 	while (close > 0) {
+	// 		startIndex--;
+	// 		if (source[startIndex] === "]") {
+	// 			close++;
+	// 		} else if (source[startIndex] === "[") {
+	// 			close--;
+	// 		}
+	// 	}
+	// }
 	return startIndex;
 }
-function compileTokens(source) {
+
+function countChar(str, char) {
+	let count = 0;
+	for (let chr of str) {
+		if (chr == char) count++;
+	}
+	return count;
+}
+
+function compile(source) {
 	let cells = [0];
 	let pointer = 0;
-	let depth = [];
+	let loops = [];
 	let compiled = "";
-	for (let i = 0; i < source.length; i++) {
-		switch (source[i]) {
+	let loopCall = 0;
+	let lines = source.replace(/[ \t]/g, "").split("\n");
+	output.classList.remove("error");
+	for (let line in lines) {
+		let tmp = "";
+		for (let char in lines[line]) {
+			if (
+				["+", "-", ">", "<", "[", "]", ".", ","].includes(lines[line][char])
+			) {
+				tmp += lines[line][char];
+			} else break;
+		}
+		lines[line] = tmp;
+	}
+	let join = lines.join("");
+	let op = countChar(join, "[");
+	let cl = countChar(join, "]");
+	if (op != cl) {
+		err();
+		return "Syntax Error: Too many `" + (op > cl ? "[" : "]") + "`s";
+	}
+	for (let i = 0; i < join.length; i++) {
+		switch (join[i]) {
 			case "+":
 				cells[pointer]++;
 				break;
 			case "-":
-				cells[pointer]--;
-				if (cells[pointer] < 0) cells[pointer] = 0;
+				if (--cells[pointer] < 0) cells[pointer] = 0;
 				break;
 			case ">":
-				pointer++;
-				if (pointer >= cells.length) cells.push(0);
+				if (++pointer >= cells.length) cells.push(0);
 				break;
 			case "<":
-				pointer--;
-				if (pointer < 0) pointer = 0;
+				if (--pointer < 0) pointer = 0;
 				break;
 			case ".":
 				compiled += String.fromCharCode(cells[pointer]);
 				break;
 			case "[":
-				depth.push(i);
-				if (cells[pointer] === 0) i = pairIndex(source, i);
+				let p = pairIndex(join, i);
+				loops.push(i);
+				if (cells[pointer] === 0) i = p;
 				break;
 			case "]":
-				if (cells[pointer] !== 0) i = depth[depth.length - 1];
-				else depth.pop();
+				if (cells[pointer] !== 0) {
+					i = loops[loops.length - 1];
+					if (++loopCall == 10000) {
+						err();
+						return (
+							"Error : Maximum loop call (10k) exceeded<br><tab>`[` number : " +
+							(i + 1) +
+							"<br><tab>Cell index : " +
+							pointer
+						);
+					}
+				} else {
+					loops.pop();
+					loopCall = 0;
+				}
 				break;
 		}
 	}
 	return compiled;
+}
+
+function err() {
+	output.classList.add("error");
 }

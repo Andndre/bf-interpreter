@@ -1,6 +1,8 @@
-body{
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+
+body, button{
   margin: 0;
-  font-family: sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 h4{
   margin: 0px;
@@ -41,6 +43,12 @@ h4{
   color: white;
   font-size: 16px;
   word-wrap: break-word;
+}
+.output{
+  font-family:monospace;
+}
+.output.error{
+  color: red;
 }
 .CodeMirror{
   height: auto;
