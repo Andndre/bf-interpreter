@@ -7,8 +7,7 @@ body{
   --header-height: 80px;
 }
 h4{
-  margin: 0px;
-  margin-bottom: 10px;
+  margin: 10px 0 0 0;
 }
 .header{
   width: 100%;
@@ -49,11 +48,20 @@ h4{
   font-size: 16px;
   word-wrap: break-word;
 }
-.output{
+.output, .cells{
   font-family:monospace;
 }
 .output.error{
   color: red;
+}
+.input{
+  background-color: rgb(32, 32, 32);
+  font-family:monospace;
+  color: white;
+  display: none;
+}
+.input.focus{
+  display: block;
 }
 .CodeMirror{
   height: auto;

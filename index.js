@@ -7,11 +7,44 @@ let editor = CodeMirror(document.getElementById("bf-editor"), {
 	value:
 		"++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.",
 });
+editor.focus();
 
+let cells;
+let pointer;
+let loops;
+let compiled;
+let loopCall;
+let lines;
+let executeFromIndex;
+let error;
+
+const run_btn = document.getElementById("run-btn");
+const cellstxt = document.getElementById("cells");
 const output = document.getElementById("output");
+const input = document.getElementById("input");
 
-document.getElementById("run-btn").addEventListener("click", () => {
-	output.innerHTML = compile(editor.getValue());
+input.addEventListener("input", (ev) => {
+	cells[pointer] = ev.target.value.charCodeAt(0);
+	input.value = "";
+	input.classList.remove("focus");
+	output.innerHTML = compile();
+});
+input.addEventListener("paste", (ev) => {
+	ev.preventDefault();
+});
+
+run_btn.addEventListener("click", () => {
+	cells = [0];
+	pointer = 0;
+	loops = [];
+	compiled = "";
+	loopCall = 0;
+	lines = editor.getValue().replace(/[ \t]/g, "").split("\n");
+	executeFromIndex = 0;
+	error = false;
+	output.classList.remove("error");
+	cellstxt.innerHTML = "";
+	output.innerHTML = compile();
 });
 
 function pairIndex(source, startIndex) {
@@ -49,14 +82,8 @@ function countChar(str, char) {
 	return count;
 }
 
-function compile(source) {
-	let cells = [0];
-	let pointer = 0;
-	let loops = [];
-	let compiled = "";
-	let loopCall = 0;
-	let lines = source.replace(/[ \t]/g, "").split("\n");
-	output.classList.remove("error");
+function compile() {
+	if (error) return "";
 	for (let line in lines) {
 		let tmp = "";
 		for (let char in lines[line]) {
@@ -75,7 +102,7 @@ function compile(source) {
 		err();
 		return "Syntax Error: Too many `" + (op > cl ? "[" : "]") + "`s";
 	}
-	for (let i = 0; i < join.length; i++) {
+	for (let i = executeFromIndex; i < join.length; i++) {
 		switch (join[i]) {
 			case "+":
 				cells[pointer]++;
@@ -114,11 +141,19 @@ function compile(source) {
 					loopCall = 0;
 				}
 				break;
+			case ",":
+				input.classList.add("focus");
+				input.focus();
+				executeFromIndex = i + 1;
+				cellstxt.innerHTML = "[" + cells + "]";
+				return compiled;
 		}
 	}
+	cellstxt.innerHTML = "[" + cells + "]";
 	return compiled;
 }
 
 function err() {
+	error = true;
 	output.classList.add("error");
 }
